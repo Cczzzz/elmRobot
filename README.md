@@ -38,5 +38,5 @@
 其中group_sn为红包链接的{sn}  sign， 为用户cookie中的eleme_key ，cookie为完整cookie， phone为领取用户的手机号
 其它信息非必选
 
-
+### 现在好像凉了 仅当学习用吧
     
