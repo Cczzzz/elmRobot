@@ -15,13 +15,13 @@ public class RequestPayload {
     private Double longitude = 111D;
     private String method = "phone";
     //电话号码
-    private Double phone ;
+    private Long phone ;
     private Integer platform = 4;
     //cookie中eleme_key
     private String sign;
     private String track_id = "undefined";
     private String unionid = "fuck";
-    private String weixin_avatar = "";
+    private String weixin_avatar = "http://thirdqq.qlogo.cn/g?b=oidb&k=GgqWLTFoJSbsomS4IIKS2Q&s=40";
     private String weixin_username = "";
     private String openId;
     private String cookie;

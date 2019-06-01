@@ -16,7 +16,7 @@ public class Test {
 
         RequestPayload requestPayload = new RequestPayload();
         requestPayload.setGroup_sn("1d3edf32968448ac");
-        requestPayload.setPhone(15641680695D);
+        requestPayload.setPhone(15641680695L);
         requestPayload.setSign("5f0ba5a1dcccf3d50977b98437a29b9d");
 
         String url = "";

@@ -9,15 +9,22 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
-@RestController("/croe")
+@RestController
+@RequestMapping("/croe")
 public class CroeController extends BaseController {
 
     @Autowired
     CroeService service;
 
     @PostMapping()
-    public ResultObj getRedPacket(String url) throws IOException, InterruptedException {
+    public ResultObj getRedPacket(String url) throws IOException, InterruptedException, InstantiationException, IllegalAccessException {
         return succeed(service.getRedPacket(url));
+    }
+
+    @PostMapping("/contribute/{phone}")
+    public ResultObj contribute(@PathVariable("phone") Long phone,String cookie) throws IllegalAccessException, InstantiationException {
+        service.contribute(phone,cookie);
+        return succeed();
     }
 
 

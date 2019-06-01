@@ -4,25 +4,36 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.cc.elm.common.ex.MyException;
+import com.cc.elm.common.redis.BaseJedisBean;
+import com.cc.elm.common.redis.BaseJedisList;
 import com.cc.elm.entity.ElmReq;
 import com.cc.elm.entity.ElmUrl;
+import com.cc.elm.entity.RCookie;
 import com.cc.elm.entity.RequestPayload;
 import com.cc.elm.http.HttpResonse;
 import com.cc.elm.http.RequestUtil;
 import com.cc.elm.service.CroeService;
 import com.cc.elm.service.ResolveUrl;
+import lombok.extern.log4j.Log4j;
+import org.apache.juli.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.Map;
 
 @Service
 public class CroeServiceImpl implements CroeService {
 
+    final static Logger LOGGER = LoggerFactory.getLogger(CroeServiceImpl.class);
+
     public final String themeId = "theme_id";
     public final String snId = "sn";
     public final String luckyNumber = "lucky_number";
-    static String cookie = "perf_ssid=oobk097a7w1j5ipnr0p0nothhwryap88_2019-04-23; ubt_ssid=pmoyc4l2qv2xx4x3phs6b5m7syvbxkpg_2019-04-23; cna=BiWpFAc3lG0CAd9IMDONdRiE; _uab_collina=155600494151129512994855; _utrace=26d6d5ae30af512b0319dbb8a914b8cd_2019-04-23; snsInfo[101204453]=%7B%22city%22%3A%22%22%2C%22constellation%22%3A%22%22%2C%22eleme_key%22%3A%225f0ba5a1dcccf3d50977b98437a29b9d%22%2C%22figureurl%22%3A%22http%3A%2F%2Fqzapp.qlogo.cn%2Fqzapp%2F101204453%2FEC7B2F7DEDA74A44DDA4F16DB31BDF83%2F30%22%2C%22figureurl_1%22%3A%22http%3A%2F%2Fqzapp.qlogo.cn%2Fqzapp%2F101204453%2FEC7B2F7DEDA74A44DDA4F16DB31BDF83%2F50%22%2C%22figureurl_2%22%3A%22http%3A%2F%2Fqzapp.qlogo.cn%2Fqzapp%2F101204453%2FEC7B2F7DEDA74A44DDA4F16DB31BDF83%2F100%22%2C%22figureurl_qq%22%3A%22http%3A%2F%2Fthirdqq.qlogo.cn%2Fg%3Fb%3Doidb%26k%3Dx428HkIfTq6NQCynUSHqQg%26s%3D140%22%2C%22figureurl_qq_1%22%3A%22http%3A%2F%2Fthirdqq.qlogo.cn%2Fg%3Fb%3Doidb%26k%3Dx428HkIfTq6NQCynUSHqQg%26s%3D40%22%2C%22figureurl_qq_2%22%3A%22http%3A%2F%2Fthirdqq.qlogo.cn%2Fg%3Fb%3Doidb%26k%3Dx428HkIfTq6NQCynUSHqQg%26s%3D100%22%2C%22figureurl_type%22%3A%221%22%2C%22gender%22%3A%22%E5%A5%B3%22%2C%22is_lost%22%3A0%2C%22is_yellow_vip%22%3A%220%22%2C%22is_yellow_year_vip%22%3A%220%22%2C%22level%22%3A%220%22%2C%22msg%22%3A%22%22%2C%22nickname%22%3A%22%E4%BD%A0%E6%98%AF%E4%B8%8D%E6%98%AF%E5%93%88%E6%89%B9%E5%95%8A%22%2C%22openid%22%3A%22EC7B2F7DEDA74A44DDA4F16DB31BDF83%22%2C%22province%22%3A%22%22%2C%22ret%22%3A0%2C%22vip%22%3A%220%22%2C%22year%22%3A%221996%22%2C%22yellow_vip_level%22%3A%220%22%2C%22name%22%3A%22%E4%BD%A0%E6%98%AF%E4%B8%8D%E6%98%AF%E5%93%88%E6%89%B9%E5%95%8A%22%2C%22avatar%22%3A%22http%3A%2F%2Fthirdqq.qlogo.cn%2Fg%3Fb%3Doidb%26k%3Dx428HkIfTq6NQCynUSHqQg%26s%3D40%22%7D; _umdata=G45529728B96A30F8F03319B19B97ED81B3856B; track_id=1556005120|bbb6663a8752de6ac07ebb66b0262853afbb4dd658b80f2eba|cd98e68f55e61767e138d5f7c48707e1; USERID=16499326; UTUSER=16499326; SID=i42VRuBonE2Hrls9Qk1HvKuGuAfiT9Q8yveg; isg=BDg4WxyBkCVuCvyikiylkdR5HOYKCZ0ppx7pwXKpgHMmjdx3C7GVuWbrQcOY3VQD";
 
     @Override
     public Integer getLuckyNumber(String themeId, String snId) throws IOException, InterruptedException {
@@ -35,24 +46,73 @@ public class CroeServiceImpl implements CroeService {
     }
 
     @Override
-    public ElmReq getRedPacket(String url) throws IOException, InterruptedException {
+    public ElmReq getRedPacket(String url) throws IOException, InterruptedException, IllegalAccessException, InstantiationException {
         Map<String, String> urlParameter = ResolveUrl.resolve(url);
+        //获取luckyNumber
         int luckyNumber = getLuckyNumber(urlParameter.get(themeId), urlParameter.get(snId));
-        //todo 取得cookie
-        RequestPayload requestPayload = new RequestPayload();
-        requestPayload.setGroup_sn(urlParameter.get(snId));
-        requestPayload.setPhone(15641680695D);
-        requestPayload.setSign("5f0ba5a1dcccf3d50977b98437a29b9d");
-        requestPayload.setOpenId("EC7B2F7DEDA74A44DDA4F16DB31BDF83");
-        HttpResonse httpResonse = RequestUtil.Post(ElmUrl.haobaoUrl + requestPayload.getOpenId(), requestPayload, cookie);
         ElmReq elmReq = new ElmReq();
         elmReq.setLuckyNumber(luckyNumber);
-        if (httpResonse.getStatusCode() == 200) {
-            JSONArray promotion_items = JSONObject.parseObject(httpResonse.getBody()).getJSONArray("promotion_records");
-            elmReq.setAtNumber(promotion_items.size());
-        } else {
-            throw new MyException("领取失败");
+        int now = 0;//当前领到第几个
+        long llenn = BaseJedisList.llenn(RCookie.class);//redis中队列数
+        long index = 0;//循环队列index
+        //循环从redis中取cookie 直到领取到luckyNumber -1 或者队列取完
+        while (now < luckyNumber - 1 && index < llenn) {
+            RCookie rCookie = BaseJedisList.lindex(index, RCookie.class);
+            RequestPayload requestPay = transform(rCookie);
+            requestPay.setGroup_sn(urlParameter.get(snId));
+            Integer send = send(requestPay);
+            if (send != null) {
+                now = send;
+            }
+            index++;
         }
+        elmReq.setAtNumber(now);
         return elmReq;
     }
+
+    //发送领红包请求
+    public Integer send(RequestPayload requestPayload) throws IOException, InterruptedException {
+        HttpResonse httpResonse = RequestUtil.Post(ElmUrl.haobaoUrl + requestPayload.getOpenId(), requestPayload, requestPayload.getCookie());
+        if (httpResonse.getStatusCode() == 200) {
+            JSONArray promotion_items = JSONObject.parseObject(httpResonse.getBody()).getJSONArray("promotion_records");
+            return promotion_items.size();
+        } else {
+            LOGGER.warn("领取失败=>" + JSON.toJSONString(requestPayload)+"\n接口信息"+JSON.toJSONString(httpResonse.getBody()));
+            return null;
+        }
+    }
+
+
+    @Override
+    public void contribute(Long phone, String cookie) throws IllegalAccessException, InstantiationException {
+        RCookie cookieBean = new RCookie();
+        RCookie rCookie = BaseJedisBean.getByRedis(cookieBean.getRedisKey(String.valueOf(phone)), RCookie.class);
+        if (rCookie != null) {
+            throw new MyException("此cookie重复");
+        }
+        //截取snsInfo
+        int start = cookie.indexOf("=", cookie.indexOf("snsInfo"));
+        int end = cookie.indexOf(";", start);
+        String snsInfo = cookie.substring(start + "=".length(), end);
+        //url解码
+        JSONObject jsonObject = JSONObject.parseObject(URLDecoder.decode(snsInfo, StandardCharsets.UTF_8));
+
+        cookieBean.setCookie(cookie);
+        cookieBean.setPhone(phone);
+        cookieBean.setOpenId(jsonObject.getString("openid"));
+        cookieBean.setSign(jsonObject.getString("eleme_key"));
+        //存入redis
+        BaseJedisList.rpush(Collections.singletonList(cookieBean));
+    }
+
+    public RequestPayload transform(RCookie cookie) {
+        RequestPayload requestPayload = new RequestPayload();
+        requestPayload.setOpenId(cookie.getOpenId());
+        requestPayload.setPhone(cookie.getPhone());
+        requestPayload.setSign(cookie.getSign());
+        requestPayload.setCookie(cookie.getCookie());
+        return requestPayload;
+    }
+
+
 }
