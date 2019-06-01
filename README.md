@@ -1,11 +1,11 @@
 # elmRobot
 饿了吗领最大红包机器人
 
-##调用饿了吗接口领红包
+## 调用饿了吗接口领红包
 暂时使用redis存储cookie
 主要需要cookie中的snsInfo 取得openid和eleme_key
 
-##饿了吗接口
+## 饿了吗接口
 红包的链接包含两主要信息 sn 和 theme_id
 
 接口1：取得最大红包数 get请求 
