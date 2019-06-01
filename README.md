@@ -15,19 +15,14 @@
 接口2：领取红包 post请求 
 地址：https://h5.ele.me/restapi/marketing/promotion/weixin/{openid}
 请求体：
+```
     private String device_id = "";
-    
     //红包标识
     private String group_sn;
-    
     private String hardware_id = "";
-    
     private Double latitude = 111D;
-    
     private Double longitude = 111D;
-    
     private String method = "phone";
-    
     //电话号码
     private Long phone ;
     private Integer platform = 4;
@@ -39,7 +34,7 @@
     private String weixin_username = "";
     private String openId;
     private String cookie;
-    
+```
 其中group_sn为红包链接的{sn}  sign， 为用户cookie中的eleme_key ，cookie为完整cookie， phone为领取用户的手机号
 其它信息非必选
 
