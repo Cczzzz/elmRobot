@@ -16,12 +16,18 @@
 地址：https://h5.ele.me/restapi/marketing/promotion/weixin/{openid}
 请求体：
     private String device_id = "";
+    
     //红包标识
     private String group_sn;
+    
     private String hardware_id = "";
+    
     private Double latitude = 111D;
+    
     private Double longitude = 111D;
+    
     private String method = "phone";
+    
     //电话号码
     private Long phone ;
     private Integer platform = 4;
